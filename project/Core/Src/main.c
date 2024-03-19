@@ -41,7 +41,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
-
+uint32_t left_toggles=0;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -56,8 +56,40 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
 
+ if (GPIO_Pin==S1_Pin){
+	 HAL_UART_Transmit(&huart2, "S1\r\n", 4, 10);
+	 left_toggles=6;
+ }
+
+}
+
+
+void heartbeat(void)
+{
+static uint32_t heartbeat_tick=0;
+if(heartbeat_tick<HAL_GetTick()){
+	heartbeat_tick=HAL_GetTick()+500;
+	HAL_GPIO_TogglePin(D1_GPIO_Port,D1_Pin);
+
+}
+}
 /* USER CODE END 0 */
+
+
+
+void turn_signal_left(void)
+{
+static uint32_t turn_toggle_tick=0;
+if(turn_toggle_tick<HAL_GetTick()&& left_toggles>0){
+	turn_toggle_tick=HAL_GetTick()+300;
+	HAL_GPIO_TogglePin(D3_GPIO_Port,D3_Pin);
+	left_toggles--;
+}
+}
+
 
 /**
   * @brief  The application entry point.
@@ -97,7 +129,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  heartbeat();
+	  turn_signal_left();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
